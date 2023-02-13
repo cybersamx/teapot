@@ -1,0 +1,16 @@
+mode: debug
+log-level: debug
+log-format: text
+http:
+  address: :7000
+  site-url: http://127.0.0.1:7000/
+  enable-prometheus: true
+  enable-profiler: true
+  allowed-origins:
+    - http://localhost:7000
+    - http://example.com
+store:
+  driver: sqlite3
+  # dsn: postgres://pguser:password@localhost:5433/db_test?sslmode=disable
+  # dsn: mysql://mysqluser:password@localhost:3307/db_test?ssl-mode=disabled
+  dsn: authx.sqlite
