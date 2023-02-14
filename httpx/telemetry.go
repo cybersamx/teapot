@@ -10,6 +10,7 @@ import (
 	"github.com/AppsFlyer/go-sundheit/checks"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/sirupsen/logrus"
 )
 
 const (
@@ -143,6 +144,22 @@ func (s *Server) initHealthCheck() {
 //	}
 //}
 
+func (s *Server) handleLogging(ctx *Context, w *responseWriterWrapper, r *http.Request) {
+	// For now, log the requests to all paths.
+	latency := time.Now().Sub(ctx.startTime)
+
+	path := fullPath(r)
+
+	fields := logrus.Fields{
+		"latency":   latency,
+		"client-ip": ctx.clientIP,
+		"agent":     r.UserAgent(),
+		"body":      w.Size(),
+	}
+
+	s.logger.WithFields(fields).Infof("%d - %s %s", w.Status(), r.Method, path)
+}
+
 //func (s *Server) initTracing() {
 //	s.logger.Info("Initializing tracing middleware")
 //
@@ -167,7 +184,7 @@ func (s *Server) handleTracing(handlerFn http.Handler) {
 }
 
 func (s *Server) handleHealthCheck() HandlerFunc {
-	return func(ctx *Context, w http.ResponseWriter, r *http.Request) {
+	return func(ctx *Context, w *responseWriterWrapper, r *http.Request) {
 		renderJSON(w, http.StatusOK, map[string]any{"status": "OK"})
 	}
 }

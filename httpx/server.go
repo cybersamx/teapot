@@ -60,8 +60,6 @@ func New(datastore store.Store, logger *logrus.Logger, cfg *model.Config) *Serve
 	//gin.DefaultWriter = logWriter
 	//gin.DefaultErrorWriter = logWriter
 
-	s.initRoutes()
-
 	return s
 }
 
@@ -91,6 +89,8 @@ func (s *Server) HTTPServer() *http.Server {
 
 func (s *Server) Start(ctx context.Context) {
 	s.logger.WithFields(map[string]any{"addr": s.cfg.HTTP.Address}).Info("Starting http server")
+
+	s.initRoutes()
 
 	// Set up the context.
 	ctx, s.cancel = context.WithCancel(ctx)

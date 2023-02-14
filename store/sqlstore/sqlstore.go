@@ -134,6 +134,9 @@ func (ss *SQLStore) PingContext(ctx context.Context) error {
 			ctx, cancel := context.WithTimeout(ctx, dbPingTimeout)
 			defer cancel()
 
+			if ss.db == nil {
+				return errors.New("database db not initialized yet")
+			}
 			return ss.db.PingContext(ctx)
 		}()
 

@@ -38,10 +38,13 @@ func (s *Server) initRoutes() {
 	// Middleware.
 	s.initMiddleware()
 
+	factory := NewHandlerWrapperFactory(s)
+	factory.AddPostMiddleware(s.handleLogging)
+
 	// Root routes.
-	s.router.Handle("/health", APIHandler(s.handleHealthCheck())).Methods(http.MethodGet)
-	s.router.Handle("/health/live", APIHandler(s.handleHealthCheck())).Methods(http.MethodGet)
-	s.router.Handle("/health/ready", APIHandler(WrapHandlerFunc(ghttp.HandleHealthJSON(s.healthcheck)))).Methods(http.MethodGet)
+	s.router.Handle("/health", factory.Handler(s.handleHealthCheck())).Methods(http.MethodGet)
+	s.router.Handle("/health/live", factory.Handler(s.handleHealthCheck())).Methods(http.MethodGet)
+	s.router.Handle("/health/ready", factory.Handler(WrapHandlerFunc(ghttp.HandleHealthJSON(s.healthcheck)))).Methods(http.MethodGet)
 	//s.router.GET("/metrics", gin.WrapH(promhttp.HandlerFor(s.promRegistry, promhttp.HandlerOpts{})))
 
 	// Profiler routes.
