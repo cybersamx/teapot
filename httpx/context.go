@@ -1,17 +1,31 @@
 package httpx
 
 import (
-	"time"
-
-	"github.com/sirupsen/logrus"
+	"github.com/gin-gonic/gin"
 )
 
-type Context struct {
-	logger    *logrus.Logger
-	requestID string
-	clientIP  string
-	path      string
-	userAgent string
-	bodySize  int
-	startTime time.Time
+const (
+	ctxObjectKey = "request-object"
+)
+
+type ContextObject struct {
+	RequestID string
+}
+
+func GetContextObject(ctx *gin.Context) ContextObject {
+	val, ok := ctx.Get(ctxObjectKey)
+	if !ok {
+		val = ContextObject{}
+	}
+
+	obj, ok := val.(ContextObject)
+	if !ok {
+		obj = ContextObject{}
+	}
+
+	return obj
+}
+
+func SetContextObject(ctx *gin.Context, obj ContextObject) {
+	ctx.Set(ctxObjectKey, obj)
 }

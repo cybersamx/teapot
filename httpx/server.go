@@ -3,6 +3,7 @@ package httpx
 import (
 	"context"
 	"errors"
+	"io"
 	"net"
 	"net/http"
 	"sync"
@@ -10,7 +11,8 @@ import (
 	"github.com/AppsFlyer/go-sundheit"
 	"github.com/cybersamx/teapot/model"
 	"github.com/cybersamx/teapot/store"
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/sirupsen/logrus"
 )
@@ -18,10 +20,9 @@ import (
 type Server struct {
 	cfg *model.Config
 
-	datastore store.Store
-	httpd     *http.Server
-	//router       *gin.Engine
-	router       *mux.Router
+	datastore    store.Store
+	httpd        *http.Server
+	router       *gin.Engine
 	logger       *logrus.Logger
 	promRegistry *prometheus.Registry
 	healthcheck  gosundheit.Health
@@ -38,16 +39,14 @@ func New(datastore store.Store, logger *logrus.Logger, cfg *model.Config) *Serve
 	}
 
 	// Initialize gin. Note: gin.SetMode() must be run before gin.New().
-	//if cfg.Mode == "production" {
-	//	gin.SetMode(gin.ReleaseMode)
-	//} else {
-	//	gin.SetMode(gin.DebugMode)
-	//}
-	//
-	//// Set up http server.
-	//router := gin.New()
+	if cfg.Mode == "production" {
+		gin.SetMode(gin.ReleaseMode)
+	} else {
+		gin.SetMode(gin.DebugMode)
+	}
 
-	router := mux.NewRouter()
+	// Set up http server.
+	router := gin.New()
 
 	s.cfg = cfg
 	s.httpd = &http.Server{
@@ -56,18 +55,16 @@ func New(datastore store.Store, logger *logrus.Logger, cfg *model.Config) *Serve
 	}
 	s.router = router
 
-	//logWriter := io.MultiWriter(s.logger.Writer())
-	//gin.DefaultWriter = logWriter
-	//gin.DefaultErrorWriter = logWriter
+	logWriter := io.MultiWriter(s.logger.Writer())
+	gin.DefaultWriter = logWriter
+	gin.DefaultErrorWriter = logWriter
+
+	s.initRoutes()
 
 	return s
 }
 
-//func (s *Server) Router() *gin.Engine {
-//	return s.router
-//}
-
-func (s *Server) Router() *mux.Router {
+func (s *Server) Router() *gin.Engine {
 	return s.router
 }
 
@@ -89,8 +86,6 @@ func (s *Server) HTTPServer() *http.Server {
 
 func (s *Server) Start(ctx context.Context) {
 	s.logger.WithFields(map[string]any{"addr": s.cfg.HTTP.Address}).Info("Starting http server")
-
-	s.initRoutes()
 
 	// Set up the context.
 	ctx, s.cancel = context.WithCancel(ctx)
@@ -137,5 +132,23 @@ func (s *Server) Close(ctx context.Context) {
 
 	if err := s.httpd.Shutdown(ctx); err != nil {
 		s.logger.WithError(err).Fatalln("Can't shut down http service")
+	}
+}
+
+func (s *Server) initRequestID() {
+	s.logger.Info("Initializing tracing middleware")
+
+	s.router.Use(s.useRequestID())
+}
+
+func (s *Server) useRequestID() gin.HandlerFunc {
+	return func(ctx *gin.Context) {
+		obj := GetContextObject(ctx)
+		obj.RequestID = uuid.New().String()
+		SetContextObject(ctx, obj)
+
+		ctx.Writer.Header().Add(HeaderXRequestID, obj.RequestID)
+
+		ctx.Next()
 	}
 }

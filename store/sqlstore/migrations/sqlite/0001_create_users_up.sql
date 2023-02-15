@@ -11,7 +11,6 @@ CREATE TABLE IF NOT EXISTS users
   first_name    VARCHAR(64),
   last_name     VARCHAR(64),
   is_verified   BOOLEAN,
-  roles         VARCHAR(64),
   password      VARCHAR(128)
 );
 

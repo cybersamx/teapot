@@ -2,10 +2,13 @@ package api
 
 import (
 	"github.com/cybersamx/teapot/httpx"
+	"github.com/gin-gonic/gin"
 )
 
 type API struct {
 	server *httpx.Server
+
+	rootGroup *gin.RouterGroup
 }
 
 func New() *API {
