@@ -41,6 +41,20 @@ type SQLStore struct {
 	audits *AuditSQLStore
 }
 
+func New(driver string, logger *logrus.Logger) *SQLStore {
+	switch driver {
+	case driverMySQL:
+		return NewSQLiteStore(logger)
+	case driverPostgres:
+		return NewPostgresStore(logger)
+	case driverSQLite:
+		return NewSQLiteStore(logger)
+	default:
+		logrus.Panicf("Driver %s is not supported", driver)
+		return nil
+	}
+}
+
 func (ss *SQLStore) migration() error {
 	ss.logger.Infof("Starting database migrations")
 	mig := NewMigrator(ss)

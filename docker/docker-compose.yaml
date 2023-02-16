@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  postgres-prod:
+    image: postgres:10.23-alpine
+    container_name: postgres-prod
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db
+  postgres-test:
+    image: postgres:10.23-alpine
+    container_name: postgres-test
+    ports:
+      - '5433:5432' # Expose test port as (default port + 1)
+    environment:
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: db_test
+  mysql-prod:
+    image: mysql:8
+    container_name: mysql-prod
+    ports:
+      - '3306:3306'
+    environment:
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: db
+      MYSQL_ROOT_PASSWORD: password
+  mysql-test:
+    image: mysql:8
+    container_name: mysql-test
+    ports:
+      - '3307:3306' # Expose test port as (default port + 1)
+    environment:
+      MYSQL_USER: mysqluser
+      MYSQL_PASSWORD: password
+      MYSQL_DATABASE: db_test
+      MYSQL_ROOT_PASSWORD: password

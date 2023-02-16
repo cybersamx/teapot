@@ -24,7 +24,7 @@ type App struct {
 
 func New(cfg *model.Config, logger *logrus.Logger) (*App, error) {
 	// Datastore setup.
-	datastore := sqlstore.NewSQLiteStore(logger)
+	datastore := sqlstore.New(cfg.Store.Driver, logger)
 
 	// HTTP server setup.
 	srv := httpx.New(datastore, logger, cfg)
