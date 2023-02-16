@@ -37,7 +37,7 @@ func transact(ctx context.Context, db *sqlx.DB, fn txHandlerFunc) (rerr error) {
 		ReadOnly:  false,
 	})
 	if err != nil {
-		return fmt.Errorf("transact, begin tx - rootErr=%v; %w", err, ErrSQLTx)
+		return fmt.Errorf("transact, begin tx - root_err=%v; %w", err, ErrSQLTx)
 	}
 	defer func() {
 		if err == nil {
@@ -45,7 +45,7 @@ func transact(ctx context.Context, db *sqlx.DB, fn txHandlerFunc) (rerr error) {
 		}
 
 		if err := tx.Rollback(); err != nil {
-			rerr = fmt.Errorf("transact, rollback - rootErr=%v; %w", err, ErrSQLTx)
+			rerr = fmt.Errorf("transact, rollback - root_err=%v; %w", err, ErrSQLTx)
 			return
 		}
 	}()
@@ -55,7 +55,7 @@ func transact(ctx context.Context, db *sqlx.DB, fn txHandlerFunc) (rerr error) {
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("transact, commit - rootErr=%v; %w", err, ErrSQLTx)
+		return fmt.Errorf("transact, commit - root_err=%v; %w", err, ErrSQLTx)
 	}
 
 	return nil
@@ -74,12 +74,12 @@ func isValidTableName(table string) bool {
 func hasRecord(ctx context.Context, db *sqlx.DB, stmt squirrel.SelectBuilder) (bool, error) {
 	query, args, err := stmt.ToSql()
 	if err != nil {
-		return false, fmt.Errorf("hasRecord - rootErr=%v; %w", err, ErrSQLBuild)
+		return false, fmt.Errorf("hasRecord - root_err=%v; %w", err, ErrSQLBuild)
 	}
 
 	rows, err := db.QueryContext(ctx, query, args...)
 	if err != nil {
-		return false, fmt.Errorf("hasReord - rootErr=%v; %w", err, ErrSQLExecute)
+		return false, fmt.Errorf("hasReord - root_err=%v; %w", err, ErrSQLExecute)
 	}
 	defer rows.Close()
 

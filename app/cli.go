@@ -19,7 +19,7 @@ import (
 var ErrFlagBinding = errors.New("failed to bind flag")
 
 func flagBindingError(flagName string, err error) error {
-	return fmt.Errorf("flagBindingError - flag=%s; rootErr=%v; %w",
+	return fmt.Errorf("flagBindingError - flag=%s; root_err=%v; %w",
 		flagName, err, ErrFlagBinding)
 }
 

@@ -52,3 +52,18 @@ func newBareSQLiteStore(t *testing.T) *SQLStore {
 
 	return sqlstore
 }
+
+func newAuditSQLiteStore(t *testing.T) *SQLStore {
+	sqlstore := newSQLiteStore(t)
+
+	initStoreWithMigrations(t, sqlstore, "0001_create_audits")
+	sqlstore.audits = newAuditSQLStore(sqlstore)
+
+	ctx := newTestContext(t)
+	err := sqlstore.Clear(ctx)
+	require.NoError(t, err)
+	err = sqlstore.audits.Clear(ctx)
+	require.NoError(t, err)
+
+	return sqlstore
+}

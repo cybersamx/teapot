@@ -9,6 +9,7 @@ import (
 	"github.com/Masterminds/squirrel"
 	"github.com/cybersamx/teapot/common"
 	"github.com/cybersamx/teapot/model"
+	"github.com/cybersamx/teapot/store"
 	"github.com/jmoiron/sqlx"
 	"github.com/sirupsen/logrus"
 )
@@ -26,6 +27,7 @@ var (
 	ErrDBNotSupported   = errors.New("non-supported database driver")
 	ErrDBOpen           = errors.New("failed to Connect the database")
 	ErrInvalidTableName = errors.New("invalid table name")
+	ErrSQLDuplicate     = errors.New("duplicate record found")
 )
 
 type SQLStore struct {
@@ -36,7 +38,7 @@ type SQLStore struct {
 	stmtCache *squirrel.StmtCache
 	wrapper   wrapper
 
-	//users *UserSQLStore
+	audits *AuditSQLStore
 }
 
 func (ss *SQLStore) migration() error {
@@ -97,7 +99,7 @@ func (ss *SQLStore) Connect(ctx context.Context, cfg *model.Config) error {
 	var err error
 	ss.db, err = sqlx.Open(ss.cfg.Store.Driver, ss.cfg.Store.DSN)
 	if err != nil {
-		return fmt.Errorf("(*SQLStore).Connect - dsn=%s; rootErr=%v; %w",
+		return fmt.Errorf("(*SQLStore).Connect - dsn=%s; root_err=%v; %w",
 			common.MaskPassword(ss.cfg.Store.DSN), err, ErrDBOpen)
 	}
 
@@ -116,12 +118,12 @@ func (ss *SQLStore) Connect(ctx context.Context, cfg *model.Config) error {
 
 func (ss *SQLStore) InitDB(ctx context.Context) error {
 	if err := ss.migration(); err != nil {
-		return fmt.Errorf("(*SQLStore).InitDB - dsn=%s; rootErr=%v; %w",
+		return fmt.Errorf("(*SQLStore).InitDB - dsn=%s; root_err=%v; %w",
 			common.MaskPassword(ss.cfg.Store.DSN), err, ErrMigration)
 	}
 
 	// Other store setups.
-	//ss.users = newUserSQLStore(ss)
+	ss.audits = newAuditSQLStore(ss)
 
 	return nil
 }
@@ -151,10 +153,10 @@ func (ss *SQLStore) PingContext(ctx context.Context) error {
 		time.Sleep(dbPingTimeout)
 	}
 
-	return fmt.Errorf("(*SQLStore).PingContext - dsn=%s; rootErr=%v; %w",
+	return fmt.Errorf("(*SQLStore).PingContext - dsn=%s; root_err=%v; %w",
 		common.MaskPassword(ss.cfg.Store.DSN), err, ErrDBOpen)
 }
 
-//func (ss *SQLStore) Users() store.UserStore {
-//	return ss.users
-//}
+func (ss *SQLStore) Audits() store.AuditStore {
+	return ss.audits
+}

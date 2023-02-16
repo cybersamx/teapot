@@ -51,7 +51,7 @@ func NewMigrator(sqlStore *SQLStore) *Migrator {
 func (m *Migrator) execFile(ctx context.Context, fs *embed.FS, filename string) error {
 	buf, err := fs.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("(*Migrator).execFile - migrationScript=%s; rootErr=%v; %w",
+		return fmt.Errorf("(*Migrator).execFile - migrationScript=%s; root_err=%v; %w",
 			filename, err, ErrMigration)
 	}
 
@@ -59,7 +59,7 @@ func (m *Migrator) execFile(ctx context.Context, fs *embed.FS, filename string) 
 		stmt := string(buf)
 		_, terr := tx.ExecContext(ctx, stmt)
 		if terr != nil {
-			return fmt.Errorf("(*Migrator).execFile - migrationScript=%s; rootErr=%v; %w", filename, terr, ErrSQLTx)
+			return fmt.Errorf("(*Migrator).execFile - migrationScript=%s; root_err=%v; %w", filename, terr, ErrSQLTx)
 		}
 
 		return nil
