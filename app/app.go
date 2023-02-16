@@ -58,6 +58,10 @@ func (a *App) Start(ctx context.Context) error {
 		return fmt.Errorf("(*App).Start; %w", err)
 	}
 
+	if err := a.datastore.InitDB(ctx); err != nil {
+		return fmt.Errorf("(*App).Start; %w", err)
+	}
+
 	// Start http server.
 	a.httpServer.Start(ctx)
 
